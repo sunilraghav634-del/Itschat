@@ -13,6 +13,10 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
 
+# FIX: Database creation Render ke liye bahar nikal diya gaya hai
+with app.app_context():
+    db.create_all()
+
 @app.route('/')
 def chat():
     if 'user' not in session:
@@ -47,12 +51,10 @@ def login():
 
 @socketio.on('message')
 def handle_message(msg):
-    # World chat: Sabko message bhejega
     username = session.get('user', 'Anonymous')
     full_message = f"<b>{username}:</b> {msg}"
     send(full_message, broadcast=True)
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     socketio.run(app, debug=True)
+    
