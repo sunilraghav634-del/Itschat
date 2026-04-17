@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, send
+from flask_socketio import SocketIO, send, join_room, leave_room, emit
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'itschat_secret_key'
@@ -13,7 +13,6 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(50), nullable=False)
 
-# FIX: Database creation Render ke liye bahar nikal diya gaya hai
 with app.app_context():
     db.create_all()
 
@@ -32,7 +31,6 @@ def login():
         user = User.query.filter_by(username=username, password=password).first()
         
         if not user:
-            # Agar user nahi hai toh naya bana do (Simple signup)
             user = User(username=username, password=password)
             db.session.add(user)
             db.session.commit()
@@ -41,20 +39,34 @@ def login():
         return redirect('/')
     
     return '''
-    <h2>ItsChat Login</h2>
-    <form method="POST">
-        <input type="text" name="username" placeholder="Username" required><br><br>
-        <input type="password" name="password" placeholder="Password" required><br><br>
-        <button type="submit">Enter Chat</button>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <h2 style="text-align:center; font-family:sans-serif;">ItsChat Login</h2>
+    <form method="POST" style="display:flex; flex-direction:column; max-width:300px; margin:auto;">
+        <input type="text" name="username" placeholder="Username" required style="padding:10px; margin-bottom:10px;"><br>
+        <input type="password" name="password" placeholder="Password" required style="padding:10px; margin-bottom:10px;"><br>
+        <button type="submit" style="padding:10px; background:#2980b9; color:white; border:none;">Enter Chat</button>
     </form>
     '''
 
+@socketio.on('join')
+def on_join(data):
+    room = data['room']
+    join_room(room)
+
+@socketio.on('private_message')
+def handle_private_message(data):
+    room = data['room']
+    msg = data['msg']
+    username = session.get('user', 'Anonymous')
+    full_message = f"<b>{username}:</b> {msg}"
+    # Send message only to the specific room
+    emit('message', full_message, to=room)
+
 @socketio.on('message')
-def handle_message(msg):
+def handle_world_message(msg):
     username = session.get('user', 'Anonymous')
     full_message = f"<b>{username}:</b> {msg}"
     send(full_message, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
-    
