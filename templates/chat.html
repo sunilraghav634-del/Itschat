@@ -53,27 +53,33 @@
         var currentChat = "World";
         var currentRoom = "World";
 
-        // Generate unique room ID sorting usernames alphabetically
         function getRoomId(user1, user2) {
             return [user1, user2].sort().join('_');
         }
 
+        // Jab page load ho, automatic room join karein
+        window.onload = function() {
+            startChat('World');
+        };
+
         function startChat(targetUser) {
             currentChat = targetUser;
             document.getElementById('chat-title').innerText = targetUser === 'World' ? '🌍 World Chat' : '👤 ' + targetUser;
-            document.getElementById('messages').innerHTML = ''; // Clear chat area
+            document.getElementById('messages').innerHTML = ''; // Clear purane messages screen se
             
             if (targetUser !== 'World') {
                 currentRoom = getRoomId(currentUser, targetUser);
-                socket.emit('join', {room: currentRoom});
             } else {
                 currentRoom = "World";
             }
+            
+            // Server ko room bhejo taaki database se purane messages aa sakein
+            socket.emit('join', {room: currentRoom});
         }
 
         socket.on('message', function(msg) {
             var messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML += '<p style="background:white; padding:8px; border-radius:8px; max-width:80%; margin:5px 0;">' + msg + '</p>';
+            messagesDiv.innerHTML += '<p style="background:white; padding:8px; border-radius:8px; max-width:80%; margin:5px 0; word-wrap: break-word;">' + msg + '</p>';
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
 
@@ -82,9 +88,9 @@
             var msgText = input.value.trim();
             if(msgText !== "") {
                 if (currentChat === 'World') {
-                    socket.send(msgText); // Broadcast to all
+                    socket.send(msgText); // World chat ke liye
                 } else {
-                    socket.emit('private_message', { room: currentRoom, msg: msgText }); // Send to private room
+                    socket.emit('private_message', { room: currentRoom, msg: msgText }); // Direct chat ke liye
                 }
                 input.value = '';
             }
