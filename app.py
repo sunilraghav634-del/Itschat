@@ -18,7 +18,7 @@ class User(db.Model):
 
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    room = db.Column(db.String(100), nullable=False) # 'World' ya 'UserA_UserB'
+    room = db.Column(db.String(100), nullable=False)
     sender = db.Column(db.String(50), nullable=False)
     message = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
@@ -30,6 +30,13 @@ with app.app_context():
 def chat():
     if 'user' not in session:
         return redirect('/login')
+    
+    # Ghost session check (Agar Render DB delete kar de)
+    current_user = User.query.filter_by(username=session['user']).first()
+    if not current_user:
+        session.pop('user', None)
+        return redirect('/login')
+
     users = User.query.filter(User.username != session['user']).all()
     return render_template('chat.html', username=session['user'], users=users)
 
@@ -39,19 +46,35 @@ def login():
         username = request.form['username'].strip()
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
+        
         if not user:
             user = User(username=username, password=password)
             db.session.add(user)
             db.session.commit()
+            
         session['user'] = user.username
         return redirect('/')
-    return '''<form method="POST"><input name="username" placeholder="Name"><input name="password" type="password"><button>Login</button></form>'''
+    
+    return '''
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <h2 style="text-align:center; font-family:sans-serif;">ItsChat Login</h2>
+    <form method="POST" style="display:flex; flex-direction:column; max-width:300px; margin:auto;">
+        <input type="text" name="username" placeholder="Username" required style="padding:10px; margin-bottom:10px;"><br>
+        <input type="password" name="password" placeholder="Password" required style="padding:10px; margin-bottom:10px;"><br>
+        <button type="submit" style="padding:10px; background:#2980b9; color:white; border:none;">Enter Chat</button>
+    </form>
+    '''
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect('/login')
 
 @socketio.on('join')
 def on_join(data):
     room = data['room']
     join_room(room)
-    # Purane messages nikaalo
+    # Purane messages DB se nikaalo
     old_messages = ChatMessage.query.filter_by(room=room).order_by(ChatMessage.timestamp.asc()).all()
     for m in old_messages:
         emit('message', f"<b>{m.sender}:</b> {m.message}")
@@ -61,7 +84,7 @@ def handle_private_message(data):
     room = data['room']
     msg_text = data['msg']
     username = session.get('user')
-    # Save to DB
+    # Message DB mein save karo
     new_msg = ChatMessage(room=room, sender=username, message=msg_text)
     db.session.add(new_msg)
     db.session.commit()
@@ -70,7 +93,7 @@ def handle_private_message(data):
 @socketio.on('message')
 def handle_world_message(msg):
     username = session.get('user')
-    # Save to DB
+    # Message DB mein save karo
     new_msg = ChatMessage(room='World', sender=username, message=msg)
     db.session.add(new_msg)
     db.session.commit()
