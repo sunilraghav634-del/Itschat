@@ -17,7 +17,6 @@
         input[type="text"] { flex-grow: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; margin-right: 10px; }
         button { padding: 10px 20px; background: #128c7e; color: white; border: none; border-radius: 20px; cursor: pointer; }
         
-        /* Mobile Friendly CSS */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             #sidebar { width: 100%; height: 30%; border-bottom: 2px solid #128c7e; }
@@ -29,10 +28,7 @@
 <body>
 
     <div id="sidebar">
-        <div class="header">
-            Hello, {{ username }}
-            <a href="/logout" style="color: white; font-size: 12px; float: right; text-decoration: none; background: #c0392b; padding: 4px 8px; border-radius: 5px;">Logout</a>
-        </div>
+        <div class="header">Hello, {{ username }}</div>
         <div id="users-list">
             <div class="user-card" onclick="startChat('World')">🌍 World Chat</div>
             {% for u in users %}
@@ -60,27 +56,37 @@
             return [user1, user2].sort().join('_');
         }
 
-        window.onload = function() {
-            startChat('World');
-        };
+        function loadMessages(targetUser) {
+            var messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = ''; // Chat area clear karo naye load ke liye
+            
+            fetch('/get_messages/' + targetUser)
+                .then(response => response.json())
+                .then(data => {
+                    data.messages.forEach(msg => {
+                        messagesDiv.innerHTML += '<p style="background:white; padding:8px; border-radius:8px; max-width:80%; margin:5px 0;"><b>' + msg.sender + ':</b> ' + msg.content + '</p>';
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                });
+        }
 
         function startChat(targetUser) {
             currentChat = targetUser;
             document.getElementById('chat-title').innerText = targetUser === 'World' ? '🌍 World Chat' : '👤 ' + targetUser;
-            document.getElementById('messages').innerHTML = '';
             
             if (targetUser !== 'World') {
                 currentRoom = getRoomId(currentUser, targetUser);
+                socket.emit('join', {room: currentRoom});
             } else {
                 currentRoom = "World";
             }
             
-            socket.emit('join', {room: currentRoom});
+            loadMessages(targetUser); // Database se purane messages lao
         }
 
         socket.on('message', function(msg) {
             var messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML += '<p style="background:white; padding:8px; border-radius:8px; max-width:80%; margin:5px 0; word-wrap: break-word;">' + msg + '</p>';
+            messagesDiv.innerHTML += '<p style="background:white; padding:8px; border-radius:8px; max-width:80%; margin:5px 0;">' + msg + '</p>';
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
 
@@ -91,11 +97,16 @@
                 if (currentChat === 'World') {
                     socket.send(msgText);
                 } else {
-                    socket.emit('private_message', { room: currentRoom, msg: msgText });
+                    socket.emit('private_message', { room: currentRoom, msg: msgText, receiver: currentChat });
                 }
                 input.value = '';
             }
         }
+        
+        // Page open hote hi World Chat ke messages load karega
+        window.onload = function() {
+            startChat('World');
+        };
     </script>
 </body>
 </html>
