@@ -21,7 +21,9 @@ class Message(db.Model):
 
 with app.app_context():
     db.create_all()
-
+@app.route('/ping')
+def ping():
+    return "OK", 200
 @app.route('/')
 def chat():
     if 'user' not in session:
