@@ -3,6 +3,9 @@
 <head>
     <title>ItsChat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ItsChat - A simple, real-time global and private messaging app.">
+    <meta name="keywords" content="ItsChat, Chat App, Messaging, Real-time">
+    <meta name="google-site-verification" content="qQt9M9rKVhv3y69fc4fMKocVlxAk3wb8Br7-T1riv8k" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
         body { font-family: Arial, sans-serif; display: flex; margin: 0; height: 100vh; background-color: #ece5dd; }
@@ -58,7 +61,7 @@
 
         function loadMessages(targetUser) {
             var messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML = ''; // Chat area clear karo naye load ke liye
+            messagesDiv.innerHTML = ''; 
             
             fetch('/get_messages/' + targetUser)
                 .then(response => response.json())
@@ -81,7 +84,7 @@
                 currentRoom = "World";
             }
             
-            loadMessages(targetUser); // Database se purane messages lao
+            loadMessages(targetUser); 
         }
 
         socket.on('message', function(msg) {
@@ -103,7 +106,6 @@
             }
         }
         
-        // Page open hote hi World Chat ke messages load karega
         window.onload = function() {
             startChat('World');
         };
