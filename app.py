@@ -21,9 +21,7 @@ class Message(db.Model):
 
 with app.app_context():
     db.create_all()
-@app.route('/ping')
-def ping():
-    return "OK", 200
+
 @app.route('/')
 def chat():
     if 'user' not in session:
@@ -48,6 +46,7 @@ def login():
     
     return '''
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="google-site-verification" content="qQt9M9rKVhv3y69fc4fMKocVlxAk3wb8Br7-T1riv8k" />
     <h2 style="text-align:center; font-family:sans-serif;">ItsChat Login</h2>
     <form method="POST" style="display:flex; flex-direction:column; max-width:300px; margin:auto;">
         <input type="text" name="username" placeholder="Username" required style="padding:10px; margin-bottom:10px;"><br>
