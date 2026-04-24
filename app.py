@@ -1,4 +1,4 @@
-    from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, send, join_room, emit
 
@@ -42,7 +42,6 @@ def login():
         session['user'] = user.username
         return redirect('/')
     
-    # Proper HTML Structure with <head> for Google Verification
     return '''
     <!DOCTYPE html>
     <html>
@@ -50,14 +49,25 @@ def login():
         <title>ItsChat Login</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="google-site-verification" content="qQt9M9rKVhv3y69fc4fMKocVlxAk3wb8Br7-T1riv8k" />
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ece5dd; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .login-card { background: white; padding: 40px 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+            .login-card h2 { color: #075e54; margin-bottom: 30px; font-size: 28px; }
+            input { width: 85%; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; transition: 0.3s; }
+            input:focus { border-color: #128c7e; outline: none; box-shadow: 0 0 5px rgba(18, 140, 126, 0.3); }
+            button { width: 95%; padding: 15px; background: #128c7e; color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+            button:hover { background: #075e54; }
+        </style>
     </head>
-    <body style="font-family:sans-serif; background-color:#ece5dd; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; margin:0;">
-        <h2>ItsChat Login</h2>
-        <form method="POST" style="display:flex; flex-direction:column; width:80%; max-width:300px; background:white; padding:20px; border-radius:10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-            <input type="text" name="username" placeholder="Username" required style="padding:12px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
-            <input type="password" name="password" placeholder="Password" required style="padding:12px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
-            <button type="submit" style="padding:12px; background:#128c7e; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Enter Chat</button>
-        </form>
+    <body>
+        <div class="login-card">
+            <h2>ItsChat</h2>
+            <form method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <button type="submit">Join Chat</button>
+            </form>
+        </div>
     </body>
     </html>
     '''
