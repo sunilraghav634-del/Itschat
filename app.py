@@ -22,6 +22,32 @@ class Message(db.Model):
 with app.app_context():
     db.create_all()
 
+# --- PWA Routes ---
+@app.route('/manifest.json')
+def manifest():
+    return jsonify({
+        "name": "ItsChat",
+        "short_name": "ItsChat",
+        "start_url": "/",
+        "display": "standalone",
+        "background_color": "#ece5dd",
+        "theme_color": "#128c7e",
+        "icons": [{
+            "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Circle-icons-chat.svg/512px-Circle-icons-chat.svg.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }]
+    })
+
+@app.route('/sw.js')
+def sw():
+    js = '''
+    self.addEventListener('install', (e) => { console.log('PWA Installed'); });
+    self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => new Response('Offline'))); });
+    '''
+    return app.response_class(js, mimetype='application/javascript')
+# ------------------
+
 @app.route('/')
 def chat():
     if 'user' not in session:
@@ -49,6 +75,10 @@ def login():
         <title>ItsChat Login</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="google-site-verification" content="qQt9M9rKVhv3y69fc4fMKocVlxAk3wb8Br7-T1riv8k" />
+        
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#128c7e">
+        
         <style>
             body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ece5dd; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
             .login-card { background: white; padding: 40px 30px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
@@ -68,6 +98,13 @@ def login():
                 <button type="submit">Join Chat</button>
             </form>
         </div>
+        
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                .then(() => console.log("PWA Ready on Login"));
+            }
+        </script>
     </body>
     </html>
     '''
