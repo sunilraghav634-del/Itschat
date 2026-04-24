@@ -32,11 +32,18 @@ def manifest():
         "display": "standalone",
         "background_color": "#ece5dd",
         "theme_color": "#128c7e",
-        "icons": [{
-            "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Circle-icons-chat.svg/512px-Circle-icons-chat.svg.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }]
+        "icons": [
+            {
+                "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Circle-icons-chat.svg/192px-Circle-icons-chat.svg.png",
+                "sizes": "192x192",
+                "type": "image/png"
+            },
+            {
+                "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Circle-icons-chat.svg/512px-Circle-icons-chat.svg.png",
+                "sizes": "512x512",
+                "type": "image/png"
+            }
+        ]
     })
 
 @app.route('/sw.js')
